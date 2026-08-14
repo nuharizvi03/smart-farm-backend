@@ -6,9 +6,10 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
-use App\Http\Requests\LoginRequest;
 use Illuminate\Support\Facades\Hash;
+use App\Http\Requests\LoginRequest;
 use App\Http\Requests\RegisterRequest;
+use Illuminate\Auth\Events\Registered;
 
 class AuthController extends Controller
 {
@@ -28,11 +29,15 @@ class AuthController extends Controller
             'farm_name' => $request->farm_name,
         ]);
 
+        // Send email verification notification
+        event(new Registered($user));
+
+        // Create Sanctum token
         $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json([
             'success' => true,
-            'message' => 'Registration successful.',
+            'message' => 'Registration successful. Please verify your email.',
             'token' => $token,
             'user' => $user
         ], 201);
@@ -44,7 +49,6 @@ class AuthController extends Controller
     public function login(LoginRequest $request)
     {
         if (!Auth::attempt($request->only('email', 'password'))) {
-
             return response()->json([
                 'success' => false,
                 'message' => 'Invalid email or password.'
@@ -60,7 +64,7 @@ class AuthController extends Controller
             'message' => 'Login successful.',
             'token' => $token,
             'user' => $user
-        ]);
+        ], 200);
     }
 
     /**
@@ -73,6 +77,6 @@ class AuthController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Logged out successfully.'
-        ]);
+        ], 200);
     }
 }

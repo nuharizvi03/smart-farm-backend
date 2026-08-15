@@ -5,6 +5,8 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use App\Http\Controllers\Api\ProfileController;
+use App\Http\Controllers\Api\FarmController;
+use App\Http\Controllers\Api\PlotController;
 
 /*
 |--------------------------------------------------------------------------
@@ -99,4 +101,8 @@ Route::middleware('auth:sanctum')->group(function () {
         ProfileController::class,
         'uploadPhoto'
     ]);
+    
+    Route::apiResource('farms', FarmController::class);
+    Route::apiResource('farms.plots', PlotController::class);
+
 });

@@ -7,6 +7,7 @@ use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use App\Http\Controllers\Api\ProfileController;
 use App\Http\Controllers\Api\FarmController;
 use App\Http\Controllers\Api\PlotController;
+use App\Http\Controllers\Api\CropController;
 
 /*
 |--------------------------------------------------------------------------
@@ -104,5 +105,10 @@ Route::middleware('auth:sanctum')->group(function () {
     
     Route::apiResource('farms', FarmController::class);
     Route::apiResource('farms.plots', PlotController::class);
+
+    Route::apiResource(
+    'farms.plots.crops',
+    CropController::class
+    );
 
 });

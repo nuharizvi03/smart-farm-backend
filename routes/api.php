@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\ProfileController;
 use App\Http\Controllers\Api\FarmController;
 use App\Http\Controllers\Api\PlotController;
 use App\Http\Controllers\Api\CropController;
+use App\Http\Controllers\Api\ExpenseController;
 
 /*
 |--------------------------------------------------------------------------
@@ -110,5 +111,10 @@ Route::middleware('auth:sanctum')->group(function () {
     'farms.plots.crops',
     CropController::class
     );
+
+    Route::apiResource(
+    'farms.expenses',
+    ExpenseController::class
+);
 
 });

@@ -37,6 +37,11 @@ class Farm extends Model
     return $this->hasMany(Plot::class);
 }
 
+    public function expenses(): HasMany
+{
+    return $this->hasMany(Expense::class);
+}
+
     /**
      * Farm will have many plots.
      *

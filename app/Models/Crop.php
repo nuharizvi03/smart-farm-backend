@@ -39,7 +39,15 @@ class Crop extends Model
     }
 
     public function inputApplications(): HasMany
-{
-    return $this->hasMany(InputApplication::class);
-}
+    {
+        return $this->hasMany(InputApplication::class);
+    }
+
+    /**
+ * Harvest records for this crop.
+ */
+    public function harvests(): HasMany
+    {
+        return $this->hasMany(Harvest::class);
+    }
 }

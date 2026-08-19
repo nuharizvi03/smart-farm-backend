@@ -11,6 +11,9 @@ use App\Http\Controllers\Api\CropController;
 use App\Http\Controllers\Api\ExpenseController;
 use App\Http\Controllers\Api\InputApplicationController;
 use App\Http\Controllers\Api\AgrochemicalProductController;
+use App\Http\Controllers\Api\HarvestController;
+use App\Http\Controllers\Api\SaleController;
+use App\Http\Controllers\Api\HarvestSummaryController;
 
 /*
 |--------------------------------------------------------------------------
@@ -132,6 +135,21 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get(
     '/crops/{crop}/input-summary',
     [InputApplicationController::class, 'summary']
-)->name('crops.input-summary');
+    )->name('crops.input-summary');
+
+    Route::apiResource(
+    'crops/{crop}/harvests',
+    HarvestController::class
+    );
+
+    Route::apiResource(
+    'harvests/{harvest}/sales',
+    SaleController::class
+    );
+
+    Route::get(
+    'crops/{crop}/harvest-summary',
+    [HarvestSummaryController::class, 'show']
+    );
 
 });

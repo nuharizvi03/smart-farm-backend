@@ -11,6 +11,11 @@ use App\Http\Controllers\Api\CropController;
 use App\Http\Controllers\Api\ExpenseController;
 use App\Http\Controllers\Api\InputApplicationController;
 use App\Http\Controllers\Api\AgrochemicalProductController;
+use App\Http\Controllers\Api\HarvestController;
+use App\Http\Controllers\Api\SaleController;
+use App\Http\Controllers\Api\HarvestSummaryController;
+use App\Http\Controllers\Api\PostHarvestLossController;
+use App\Http\Controllers\Api\CropFinancialSummaryController;
 
 /*
 |--------------------------------------------------------------------------
@@ -132,6 +137,51 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get(
     '/crops/{crop}/input-summary',
     [InputApplicationController::class, 'summary']
-)->name('crops.input-summary');
+    )->name('crops.input-summary');
+
+    Route::apiResource(
+    'crops/{crop}/harvests',
+    HarvestController::class
+    );
+
+    Route::apiResource(
+    'harvests/{harvest}/sales',
+    SaleController::class
+    );
+
+    Route::get(
+    'crops/{crop}/harvest-summary',
+    [HarvestSummaryController::class, 'show']
+    );
+
+    Route::get(
+    'harvests/{harvest}/post-harvest-losses',
+    [PostHarvestLossController::class, 'index']
+)->name('post-harvest-losses.index');
+
+Route::post(
+    'harvests/{harvest}/post-harvest-losses',
+    [PostHarvestLossController::class, 'store']
+)->name('post-harvest-losses.store');
+
+Route::get(
+    'harvests/{harvest}/post-harvest-losses/{postHarvestLoss}',
+    [PostHarvestLossController::class, 'show']
+)->name('post-harvest-losses.show');
+
+Route::put(
+    'harvests/{harvest}/post-harvest-losses/{postHarvestLoss}',
+    [PostHarvestLossController::class, 'update']
+)->name('post-harvest-losses.update');
+
+Route::delete(
+    'harvests/{harvest}/post-harvest-losses/{postHarvestLoss}',
+    [PostHarvestLossController::class, 'destroy']
+)->name('post-harvest-losses.destroy');
+
+Route::get(
+    'crops/{crop}/financial-summary',
+    [CropFinancialSummaryController::class, 'show']
+)->name('crops.financial-summary');
 
 });

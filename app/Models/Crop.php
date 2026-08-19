@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use App\Models\Plot;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use App\Models\Expense;
 
 class Crop extends Model
 {
@@ -39,7 +40,15 @@ class Crop extends Model
     }
 
     public function inputApplications(): HasMany
-{
-    return $this->hasMany(InputApplication::class);
-}
+    {
+        return $this->hasMany(InputApplication::class);
+    }
+
+    /**
+ * Harvest records for this crop.
+ */
+    public function harvests(): HasMany
+    {
+        return $this->hasMany(Harvest::class);
+    }
 }

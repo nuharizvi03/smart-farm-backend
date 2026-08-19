@@ -37,4 +37,9 @@ class Crop extends Model
     {
         return $this->hasMany(Expense::class);
     }
+
+    public function inputApplications(): HasMany
+{
+    return $this->hasMany(InputApplication::class);
+}
 }

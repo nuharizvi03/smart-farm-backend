@@ -9,6 +9,8 @@ use App\Http\Controllers\Api\FarmController;
 use App\Http\Controllers\Api\PlotController;
 use App\Http\Controllers\Api\CropController;
 use App\Http\Controllers\Api\ExpenseController;
+use App\Http\Controllers\Api\InputApplicationController;
+use App\Http\Controllers\Api\AgrochemicalProductController;
 
 /*
 |--------------------------------------------------------------------------
@@ -115,6 +117,21 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource(
     'farms.expenses',
     ExpenseController::class
-);
+    );
+
+    Route::apiResource(
+    'crops.input-applications',
+    InputApplicationController::class
+    );
+
+    Route::apiResource(
+    'agrochemical-products',
+    AgrochemicalProductController::class
+    );
+
+    Route::get(
+    '/crops/{crop}/input-summary',
+    [InputApplicationController::class, 'summary']
+)->name('crops.input-summary');
 
 });

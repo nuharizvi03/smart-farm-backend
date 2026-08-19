@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use App\Models\Plot;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use App\Models\Expense;
 
 class Crop extends Model
 {

@@ -9,6 +9,12 @@ class CropFinancialSummaryController extends Controller
 {
     /**
      * Display the financial and inventory summary for a crop.
+     *
+     * Includes:
+     * - FR-06.1 Per-crop profit
+     * - FR-06.2 Profit margin
+     * - FR-06.5 Profit/Loss indicator
+     * - FR-06.6 Per-unit profit
      */
     public function show(Crop $crop)
     {
@@ -19,17 +25,22 @@ class CropFinancialSummaryController extends Controller
             ])
             ->get();
 
-        $totalHarvested = $harvests->sum(
-            'quantity_harvested'
-        );
+        /*
+        |--------------------------------------------------------------------------
+        | Inventory calculations
+        |--------------------------------------------------------------------------
+        */
 
-        $totalSold = $harvests
+        $totalHarvested = (float) $harvests
+            ->sum('quantity_harvested');
+
+        $totalSold = (float) $harvests
             ->flatMap(function ($harvest) {
                 return $harvest->sales;
             })
             ->sum('quantity_sold');
 
-        $totalPostHarvestLoss = $harvests
+        $totalPostHarvestLoss = (float) $harvests
             ->flatMap(function ($harvest) {
                 return $harvest->postHarvestLosses;
             })
@@ -40,21 +51,87 @@ class CropFinancialSummaryController extends Controller
             - $totalSold
             - $totalPostHarvestLoss;
 
-        $totalRevenue = $harvests
+        /*
+        |--------------------------------------------------------------------------
+        | Revenue calculation
+        |--------------------------------------------------------------------------
+        */
+
+        $totalRevenue = (float) $harvests
             ->flatMap(function ($harvest) {
                 return $harvest->sales;
             })
             ->sum(function ($sale) {
                 return
-                    $sale->quantity_sold
-                    * $sale->price_per_unit;
+                    (float) $sale->quantity_sold
+                    * (float) $sale->price_per_unit;
             });
 
-        $totalExpenses = $crop
+        /*
+        |--------------------------------------------------------------------------
+        | Expense calculations
+        |--------------------------------------------------------------------------
+        */
+
+        $cropExpenses = (float) $crop
             ->expenses()
             ->sum('amount');
 
-        $profit = $totalRevenue - $totalExpenses;
+        $totalPostHarvestLossAmount = (float) $harvests
+            ->flatMap(function ($harvest) {
+                return $harvest->postHarvestLosses;
+            })
+            ->sum('loss_amount');
+
+        /*
+        |--------------------------------------------------------------------------
+        | Total expenses and profit
+        |--------------------------------------------------------------------------
+        */
+
+        $totalExpenses =
+            $cropExpenses
+            + $totalPostHarvestLossAmount;
+
+        $profit =
+            $totalRevenue
+            - $totalExpenses;
+
+        /*
+        |--------------------------------------------------------------------------
+        | FR-06.2 — Profit Margin
+        |
+        | Profit Margin = (Profit / Total Revenue) × 100
+        |--------------------------------------------------------------------------
+        */
+
+        $profitMargin = $totalRevenue > 0
+            ? ($profit / $totalRevenue) * 100
+            : 0;
+
+        /*
+        |--------------------------------------------------------------------------
+        | FR-06.6 — Per-Unit Profit
+        |
+        | Per-Unit Profit = Profit / Total Yield
+        |--------------------------------------------------------------------------
+        */
+
+        $perUnitProfit = $totalHarvested > 0
+            ? $profit / $totalHarvested
+            : 0;
+
+        /*
+        |--------------------------------------------------------------------------
+        | FR-06.5 — Profit/Loss Indicator
+        |--------------------------------------------------------------------------
+        */
+
+        $profitStatus = $profit > 0
+            ? 'profit'
+            : ($profit < 0
+                ? 'loss'
+                : 'break_even');
 
         return response()->json([
             'success' => true,
@@ -65,23 +142,38 @@ class CropFinancialSummaryController extends Controller
                 'crop_name' => $crop->crop_name,
 
                 'inventory' => [
-                    'total_harvested' => (float) $totalHarvested,
-                    'total_sold' => (float) $totalSold,
+                    'total_harvested' => round($totalHarvested, 2),
+                    'total_sold' => round($totalSold, 2),
                     'total_post_harvest_loss' =>
-                        (float) $totalPostHarvestLoss,
+                        round($totalPostHarvestLoss, 2),
                     'unsold_quantity' =>
-                        (float) $unsoldQuantity,
+                        round($unsoldQuantity, 2),
                 ],
 
                 'financials' => [
                     'total_revenue' =>
-                        (float) $totalRevenue,
+                        round($totalRevenue, 2),
+
+                    'crop_expenses' =>
+                        round($cropExpenses, 2),
+
+                    'post_harvest_loss_amount' =>
+                        round($totalPostHarvestLossAmount, 2),
 
                     'total_expenses' =>
-                        (float) $totalExpenses,
+                        round($totalExpenses, 2),
 
                     'profit' =>
-                        (float) $profit,
+                        round($profit, 2),
+
+                    'profit_margin_percentage' =>
+                        round($profitMargin, 2),
+
+                    'per_unit_profit' =>
+                        round($perUnitProfit, 2),
+
+                    'profit_status' =>
+                        $profitStatus,
                 ],
             ],
         ]);

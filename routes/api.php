@@ -16,6 +16,11 @@ use App\Http\Controllers\Api\SaleController;
 use App\Http\Controllers\Api\HarvestSummaryController;
 use App\Http\Controllers\Api\PostHarvestLossController;
 use App\Http\Controllers\Api\CropFinancialSummaryController;
+use App\Http\Controllers\Api\SeasonProfitController;
+use App\Http\Controllers\Api\AnnualProfitController;
+use App\Http\Controllers\Api\CropProfitComparisonController;
+use App\Http\Controllers\Api\CropTypeProfitAnalysisController;
+use App\Http\Controllers\Api\BreakEvenAnalysisController;
 
 /*
 |--------------------------------------------------------------------------
@@ -183,5 +188,28 @@ Route::get(
     'crops/{crop}/financial-summary',
     [CropFinancialSummaryController::class, 'show']
 )->name('crops.financial-summary');
+
+Route::get(
+    '/seasons/{season}/profit',
+    [SeasonProfitController::class, 'show']
+);
+
+Route::get(
+    '/annual/{year}/profit',
+    [AnnualProfitController::class, 'show']
+);
+
+Route::get( '/crops/profit-comparison', [CropProfitComparisonController::class, 'compare'] );
+
+Route::get(
+    '/profit-analysis/crop-types',
+    [CropTypeProfitAnalysisController::class, 'index']
+);
+
+
+Route::get(
+    '/crops/{crop}/break-even',
+    [BreakEvenAnalysisController::class, 'show']
+);
 
 });

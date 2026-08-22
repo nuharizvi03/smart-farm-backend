@@ -14,6 +14,11 @@ class StorePostHarvestLossRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'loss_date' => [
+                'required',
+                'date',
+            ],
+
             'quantity_lost' => [
                 'required',
                 'numeric',

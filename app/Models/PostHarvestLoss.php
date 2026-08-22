@@ -12,11 +12,18 @@ class PostHarvestLoss extends Model
 
     protected $fillable = [
         'harvest_id',
+        'loss_date',
         'quantity_lost',
         'unit',
         'reason',
         'loss_amount',
         'notes',
+    ];
+
+    protected $casts = [
+        'loss_date' => 'date:Y-m-d',
+        'quantity_lost' => 'decimal:2',
+        'loss_amount' => 'decimal:2',
     ];
 
     /**

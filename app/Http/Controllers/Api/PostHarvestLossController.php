@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StorePostHarvestLossRequest;
-use App\Models\Expense;
 use App\Models\Harvest;
 use App\Models\PostHarvestLoss;
 use Illuminate\Support\Facades\DB;
@@ -17,7 +16,7 @@ class PostHarvestLossController extends Controller
     public function index(Harvest $harvest)
     {
         $losses = $harvest->postHarvestLosses()
-            ->latest()
+            ->orderByDesc('loss_date')
             ->get();
 
         return response()->json([
@@ -28,49 +27,24 @@ class PostHarvestLossController extends Controller
     }
 
     /**
-     * Record a post-harvest loss and create an expense.
+     * Record a post-harvest loss.
      */
     public function store(
         StorePostHarvestLossRequest $request,
         Harvest $harvest
     ) {
-        $validated = $request->validated();
-
-        DB::transaction(function () use (
-            $validated,
-            $harvest,
-            &$loss
+        $loss = DB::transaction(function () use (
+            $request,
+            $harvest
         ) {
-            $loss = $harvest->postHarvestLosses()->create([
-                'quantity_lost' => $validated['quantity_lost'],
-                'unit' => $validated['unit'],
-                'reason' => $validated['reason'],
-                'loss_amount' => $validated['loss_amount'],
-                'notes' => $validated['notes'] ?? null,
-            ]);
-
-            $crop = $harvest->crop;
-
-            Expense::create([
-                'farm_id' => $crop->plot->farm_id,
-                'crop_id' => $crop->id,
-                'category' => 'Post-Harvest Loss',
-                'amount' => $loss->loss_amount,
-                'expense_date' => now()->toDateString(),
-                'description' =>
-                    'Post-harvest loss: ' .
-                    $loss->reason .
-                    ' (' .
-                    $loss->quantity_lost .
-                    ' ' .
-                    $loss->unit .
-                    ')',
-            ]);
+            return $harvest->postHarvestLosses()->create(
+                $request->validated()
+            );
         });
 
         return response()->json([
             'success' => true,
-            'message' => 'Post-harvest loss and expense created successfully.',
+            'message' => 'Post-harvest loss created successfully.',
             'data' => $loss,
         ], 201);
     }

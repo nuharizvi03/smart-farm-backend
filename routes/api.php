@@ -21,6 +21,13 @@ use App\Http\Controllers\Api\AnnualProfitController;
 use App\Http\Controllers\Api\CropProfitComparisonController;
 use App\Http\Controllers\Api\CropTypeProfitAnalysisController;
 use App\Http\Controllers\Api\BreakEvenAnalysisController;
+use App\Http\Controllers\Api\DashboardController;
+use App\Http\Controllers\Api\ProfitTrendController;
+use App\Http\Controllers\Api\ExpenseDistributionController;
+use App\Http\Controllers\Api\RevenueExpenseChartController;
+use App\Http\Controllers\Api\CropPerformanceController;
+use App\Http\Controllers\Api\DashboardExportController;
+use App\Http\Controllers\Api\SeasonAnnualSummaryController;
 
 /*
 |--------------------------------------------------------------------------
@@ -211,5 +218,70 @@ Route::get(
     '/crops/{crop}/break-even',
     [BreakEvenAnalysisController::class, 'show']
 );
+
+Route::get(
+    '/dashboard',
+    [DashboardController::class, 'index']
+);
+
+Route::get(
+    '/dashboard/profit-trend',
+    [ProfitTrendController::class, 'index']
+);
+
+Route::get(
+    '/dashboard/expense-distribution',
+    [ExpenseDistributionController::class, 'index']
+);
+
+Route::get(
+    '/dashboard/revenue-vs-expenses',
+    [RevenueExpenseChartController::class, 'index']
+);
+
+Route::get(
+    '/dashboard/revenue-expenses',
+    [RevenueExpenseChartController::class, 'index']
+);
+
+Route::get(
+    '/dashboard/crop-performance',
+    [CropPerformanceController::class, 'index']
+);
+
+/*
+|--------------------------------------------------------------------------
+| Dashboard CSV Export Routes
+|--------------------------------------------------------------------------
+*/
+
+Route::get(
+    '/dashboard/profit-trend/export/csv',
+    [DashboardExportController::class, 'profitTrend']
+);
+
+Route::get(
+    '/dashboard/expense-distribution/export/csv',
+    [DashboardExportController::class, 'expenseDistribution']
+);
+
+Route::get(
+    '/dashboard/revenue-vs-expenses/export/csv',
+    [DashboardExportController::class, 'revenueExpenses']
+);
+
+Route::get(
+    '/dashboard/crop-performance/export/csv',
+    [DashboardExportController::class, 'cropPerformance']
+);
+
+Route::get( 
+    '/dashboard/summary/season', 
+    [SeasonAnnualSummaryController::class, 'season'] ); 
+    
+Route::get( 
+    '/dashboard/summary/annual/{year}', 
+    [SeasonAnnualSummaryController::class, 'annual'] );
+
 
 });

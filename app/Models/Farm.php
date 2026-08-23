@@ -1,11 +1,10 @@
 <?php
 
 namespace App\Models;
-use App\Models\User;
+
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use App\Models\Plot;
 
 class Farm extends Model
 {
@@ -32,23 +31,19 @@ class Farm extends Model
         return $this->belongsTo(User::class);
     }
 
+    /**
+     * Farm has many plots.
+     */
     public function plots(): HasMany
-{
-    return $this->hasMany(Plot::class);
-}
-
-    public function expenses(): HasMany
-{
-    return $this->hasMany(Expense::class);
-}
+    {
+        return $this->hasMany(Plot::class);
+    }
 
     /**
-     * Farm will have many plots.
-     *
-     * We will create the Plot model later.
+     * Farm has many expenses.
      */
-    // public function plots(): HasMany
-    // {
-    //     return $this->hasMany(Plot::class);
-    // }
+    public function expenses(): HasMany
+    {
+        return $this->hasMany(Expense::class);
+    }
 }

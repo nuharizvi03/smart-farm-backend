@@ -2,8 +2,9 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Api\AuthController;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
+
+use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\ProfileController;
 use App\Http\Controllers\Api\FarmController;
 use App\Http\Controllers\Api\PlotController;
@@ -28,6 +29,8 @@ use App\Http\Controllers\Api\RevenueExpenseChartController;
 use App\Http\Controllers\Api\CropPerformanceController;
 use App\Http\Controllers\Api\DashboardExportController;
 use App\Http\Controllers\Api\SeasonAnnualSummaryController;
+use App\Http\Controllers\Api\WeatherController;
+
 
 /*
 |--------------------------------------------------------------------------
@@ -59,7 +62,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user', function (Request $request) {
         return response()->json([
             'success' => true,
-            'user' => $request->user()
+            'user' => $request->user(),
         ]);
     });
 
@@ -70,37 +73,43 @@ Route::middleware('auth:sanctum')->group(function () {
     |--------------------------------------------------------------------------
     */
 
-    Route::get('/email/verify/{id}/{hash}', function (
-        EmailVerificationRequest $request
-    ) {
-        $request->fulfill();
+    Route::get(
+        '/email/verify/{id}/{hash}',
+        function (EmailVerificationRequest $request) {
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Email verified successfully.'
-        ]);
-    })->middleware('signed')
-      ->name('verification.verify');
+            $request->fulfill();
 
-
-    Route::post('/email/verification-notification', function (
-        Request $request
-    ) {
-
-        if ($request->user()->hasVerifiedEmail()) {
             return response()->json([
-                'success' => false,
-                'message' => 'Email is already verified.'
-            ], 400);
+                'success' => true,
+                'message' => 'Email verified successfully.',
+            ]);
         }
+    )
+    ->middleware('signed')
+    ->name('verification.verify');
 
-        $request->user()->sendEmailVerificationNotification();
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Verification email sent successfully.'
-        ]);
-    });
+    Route::post(
+        '/email/verification-notification',
+        function (Request $request) {
+
+            if ($request->user()->hasVerifiedEmail()) {
+
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Email is already verified.',
+                ], 400);
+            }
+
+            $request->user()
+                ->sendEmailVerificationNotification();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Verification email sent successfully.',
+            ]);
+        }
+    );
 
 
     /*
@@ -109,179 +118,325 @@ Route::middleware('auth:sanctum')->group(function () {
     |--------------------------------------------------------------------------
     */
 
-    Route::get('/profile', [ProfileController::class, 'show']);
-
-    Route::put('/profile', [ProfileController::class, 'update']);
-
-    Route::post('/change-password', [
-        ProfileController::class,
-        'changePassword'
-    ]);
-
-    Route::post('/profile/photo', [
-        ProfileController::class,
-        'uploadPhoto'
-    ]);
-    
-    Route::apiResource('farms', FarmController::class);
-    Route::apiResource('farms.plots', PlotController::class);
-
-    Route::apiResource(
-    'farms.plots.crops',
-    CropController::class
+    Route::get(
+        '/profile',
+        [ProfileController::class, 'show']
     );
 
-    Route::apiResource(
-    'farms.expenses',
-    ExpenseController::class
+    Route::put(
+        '/profile',
+        [ProfileController::class, 'update']
     );
 
-    Route::apiResource(
-    'crops.input-applications',
-    InputApplicationController::class
+    Route::post(
+        '/change-password',
+        [ProfileController::class, 'changePassword']
     );
 
+    Route::post(
+        '/profile/photo',
+        [ProfileController::class, 'uploadPhoto']
+    );
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Farm Routes
+    |--------------------------------------------------------------------------
+    */
+
     Route::apiResource(
-    'agrochemical-products',
-    AgrochemicalProductController::class
+        'farms',
+        FarmController::class
+    );
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Farm Weather
+    |--------------------------------------------------------------------------
+    |
+    | Weather is automatically based on the farm's
+    | current district/location.
+    |
+    */
+
+    Route::get(
+        '/farms/{farm}/weather',
+        [WeatherController::class, 'farmWeather']
+    )->name('farms.weather');
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Plot Routes
+    |--------------------------------------------------------------------------
+    */
+
+    Route::apiResource(
+        'farms.plots',
+        PlotController::class
+    );
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Crop Routes
+    |--------------------------------------------------------------------------
+    */
+
+    Route::apiResource(
+        'farms.plots.crops',
+        CropController::class
+    );
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Expense Routes
+    |--------------------------------------------------------------------------
+    */
+
+    Route::apiResource(
+        'farms.expenses',
+        ExpenseController::class
+    );
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Input Application Routes
+    |--------------------------------------------------------------------------
+    */
+
+    Route::apiResource(
+        'crops.input-applications',
+        InputApplicationController::class
     );
 
     Route::get(
-    '/crops/{crop}/input-summary',
-    [InputApplicationController::class, 'summary']
+        '/crops/{crop}/input-summary',
+        [InputApplicationController::class, 'summary']
     )->name('crops.input-summary');
 
-    Route::apiResource(
-    'crops/{crop}/harvests',
-    HarvestController::class
-    );
+
+    /*
+    |--------------------------------------------------------------------------
+    | Agrochemical Product Routes
+    |--------------------------------------------------------------------------
+    */
 
     Route::apiResource(
-    'harvests/{harvest}/sales',
-    SaleController::class
+        'agrochemical-products',
+        AgrochemicalProductController::class
+    );
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Harvest Routes
+    |--------------------------------------------------------------------------
+    */
+
+    Route::apiResource(
+        'crops/{crop}/harvests',
+        HarvestController::class
+    );
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Sale Routes
+    |--------------------------------------------------------------------------
+    */
+
+    Route::apiResource(
+        'harvests/{harvest}/sales',
+        SaleController::class
+    );
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Harvest Summary
+    |--------------------------------------------------------------------------
+    */
+
+    Route::get(
+        'crops/{crop}/harvest-summary',
+        [HarvestSummaryController::class, 'show']
+    );
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Post Harvest Loss Routes
+    |--------------------------------------------------------------------------
+    */
+
+    Route::get(
+        'harvests/{harvest}/post-harvest-losses',
+        [PostHarvestLossController::class, 'index']
+    )->name('post-harvest-losses.index');
+
+    Route::post(
+        'harvests/{harvest}/post-harvest-losses',
+        [PostHarvestLossController::class, 'store']
+    )->name('post-harvest-losses.store');
+
+    Route::get(
+        'harvests/{harvest}/post-harvest-losses/{postHarvestLoss}',
+        [PostHarvestLossController::class, 'show']
+    )->name('post-harvest-losses.show');
+
+    Route::put(
+        'harvests/{harvest}/post-harvest-losses/{postHarvestLoss}',
+        [PostHarvestLossController::class, 'update']
+    )->name('post-harvest-losses.update');
+
+    Route::delete(
+        'harvests/{harvest}/post-harvest-losses/{postHarvestLoss}',
+        [PostHarvestLossController::class, 'destroy']
+    )->name('post-harvest-losses.destroy');
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Financial Summary
+    |--------------------------------------------------------------------------
+    */
+
+    Route::get(
+        'crops/{crop}/financial-summary',
+        [CropFinancialSummaryController::class, 'show']
+    )->name('crops.financial-summary');
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Profit Analysis
+    |--------------------------------------------------------------------------
+    */
+
+    Route::get(
+        '/seasons/{season}/profit',
+        [SeasonProfitController::class, 'show']
     );
 
     Route::get(
-    'crops/{crop}/harvest-summary',
-    [HarvestSummaryController::class, 'show']
+        '/annual/{year}/profit',
+        [AnnualProfitController::class, 'show']
     );
 
     Route::get(
-    'harvests/{harvest}/post-harvest-losses',
-    [PostHarvestLossController::class, 'index']
-)->name('post-harvest-losses.index');
+        '/crops/profit-comparison',
+        [CropProfitComparisonController::class, 'compare']
+    );
 
-Route::post(
-    'harvests/{harvest}/post-harvest-losses',
-    [PostHarvestLossController::class, 'store']
-)->name('post-harvest-losses.store');
+    Route::get(
+        '/profit-analysis/crop-types',
+        [CropTypeProfitAnalysisController::class, 'index']
+    );
 
-Route::get(
-    'harvests/{harvest}/post-harvest-losses/{postHarvestLoss}',
-    [PostHarvestLossController::class, 'show']
-)->name('post-harvest-losses.show');
-
-Route::put(
-    'harvests/{harvest}/post-harvest-losses/{postHarvestLoss}',
-    [PostHarvestLossController::class, 'update']
-)->name('post-harvest-losses.update');
-
-Route::delete(
-    'harvests/{harvest}/post-harvest-losses/{postHarvestLoss}',
-    [PostHarvestLossController::class, 'destroy']
-)->name('post-harvest-losses.destroy');
-
-Route::get(
-    'crops/{crop}/financial-summary',
-    [CropFinancialSummaryController::class, 'show']
-)->name('crops.financial-summary');
-
-Route::get(
-    '/seasons/{season}/profit',
-    [SeasonProfitController::class, 'show']
-);
-
-Route::get(
-    '/annual/{year}/profit',
-    [AnnualProfitController::class, 'show']
-);
-
-Route::get( '/crops/profit-comparison', [CropProfitComparisonController::class, 'compare'] );
-
-Route::get(
-    '/profit-analysis/crop-types',
-    [CropTypeProfitAnalysisController::class, 'index']
-);
+    Route::get(
+        '/crops/{crop}/break-even',
+        [BreakEvenAnalysisController::class, 'show']
+    );
 
 
-Route::get(
-    '/crops/{crop}/break-even',
-    [BreakEvenAnalysisController::class, 'show']
-);
+    /*
+    |--------------------------------------------------------------------------
+    | Dashboard
+    |--------------------------------------------------------------------------
+    */
 
-Route::get(
-    '/dashboard',
-    [DashboardController::class, 'index']
-);
+    Route::get(
+        '/dashboard',
+        [DashboardController::class, 'index']
+    );
 
-Route::get(
-    '/dashboard/profit-trend',
-    [ProfitTrendController::class, 'index']
-);
+    Route::get(
+        '/dashboard/profit-trend',
+        [ProfitTrendController::class, 'index']
+    );
 
-Route::get(
-    '/dashboard/expense-distribution',
-    [ExpenseDistributionController::class, 'index']
-);
+    Route::get(
+        '/dashboard/expense-distribution',
+        [ExpenseDistributionController::class, 'index']
+    );
 
-Route::get(
-    '/dashboard/revenue-vs-expenses',
-    [RevenueExpenseChartController::class, 'index']
-);
+    Route::get(
+        '/dashboard/revenue-vs-expenses',
+        [RevenueExpenseChartController::class, 'index']
+    );
 
-Route::get(
-    '/dashboard/revenue-expenses',
-    [RevenueExpenseChartController::class, 'index']
-);
+    Route::get(
+        '/dashboard/revenue-expenses',
+        [RevenueExpenseChartController::class, 'index']
+    );
 
-Route::get(
-    '/dashboard/crop-performance',
-    [CropPerformanceController::class, 'index']
-);
-
-/*
-|--------------------------------------------------------------------------
-| Dashboard CSV Export Routes
-|--------------------------------------------------------------------------
-*/
-
-Route::get(
-    '/dashboard/profit-trend/export/csv',
-    [DashboardExportController::class, 'profitTrend']
-);
-
-Route::get(
-    '/dashboard/expense-distribution/export/csv',
-    [DashboardExportController::class, 'expenseDistribution']
-);
-
-Route::get(
-    '/dashboard/revenue-vs-expenses/export/csv',
-    [DashboardExportController::class, 'revenueExpenses']
-);
-
-Route::get(
-    '/dashboard/crop-performance/export/csv',
-    [DashboardExportController::class, 'cropPerformance']
-);
-
-Route::get( 
-    '/dashboard/summary/season', 
-    [SeasonAnnualSummaryController::class, 'season'] ); 
-    
-Route::get( 
-    '/dashboard/summary/annual/{year}', 
-    [SeasonAnnualSummaryController::class, 'annual'] );
+    Route::get(
+        '/dashboard/crop-performance',
+        [CropPerformanceController::class, 'index']
+    );
 
 
+    /*
+    |--------------------------------------------------------------------------
+    | Dashboard CSV Export Routes
+    |--------------------------------------------------------------------------
+    */
+
+    Route::get(
+        '/dashboard/profit-trend/export/csv',
+        [DashboardExportController::class, 'profitTrend']
+    );
+
+    Route::get(
+        '/dashboard/expense-distribution/export/csv',
+        [DashboardExportController::class, 'expenseDistribution']
+    );
+
+    Route::get(
+        '/dashboard/revenue-vs-expenses/export/csv',
+        [DashboardExportController::class, 'revenueExpenses']
+    );
+
+    Route::get(
+        '/dashboard/crop-performance/export/csv',
+        [DashboardExportController::class, 'cropPerformance']
+    );
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Dashboard Summary
+    |--------------------------------------------------------------------------
+    */
+
+    Route::get(
+        '/dashboard/summary/season',
+        [SeasonAnnualSummaryController::class, 'season']
+    );
+
+    Route::get(
+        '/dashboard/summary/annual/{year}',
+        [SeasonAnnualSummaryController::class, 'annual']
+    );
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | General Weather Route
+    |--------------------------------------------------------------------------
+    |
+    | Example:
+    | GET /api/weather?district=Kandy
+    |
+    */
+
+    Route::get(
+        '/weather',
+        [WeatherController::class, 'index']
+    );
 });

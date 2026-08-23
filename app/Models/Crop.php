@@ -34,6 +34,11 @@ class Crop extends Model
         return $this->belongsTo(Plot::class);
     }
 
+    public function farm(): BelongsTo
+{
+    return $this->belongsTo(Farm::class);
+}
+
     public function expenses(): HasMany
     {
         return $this->hasMany(Expense::class);

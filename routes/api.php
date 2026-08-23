@@ -30,6 +30,8 @@ use App\Http\Controllers\Api\CropPerformanceController;
 use App\Http\Controllers\Api\DashboardExportController;
 use App\Http\Controllers\Api\SeasonAnnualSummaryController;
 use App\Http\Controllers\Api\WeatherController;
+use App\Http\Controllers\Api\NotificationController;
+use App\Http\Controllers\Api\NotificationPreferenceController;
 
 
 /*
@@ -89,27 +91,36 @@ Route::middleware('auth:sanctum')->group(function () {
     ->name('verification.verify');
 
 
-    Route::post(
-        '/email/verification-notification',
-        function (Request $request) {
+    /*
+|--------------------------------------------------------------------------
+| Notifications - FR-09
+|--------------------------------------------------------------------------
+*/
 
-            if ($request->user()->hasVerifiedEmail()) {
+Route::get(
+    '/notifications',
+    [NotificationController::class, 'index']
+)->name('notifications.index');
 
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Email is already verified.',
-                ], 400);
-            }
+Route::post(
+    '/notifications',
+    [NotificationController::class, 'store']
+)->name('notifications.store');
 
-            $request->user()
-                ->sendEmailVerificationNotification();
+Route::put(
+    '/notifications/{notification}/read',
+    [NotificationController::class, 'markAsRead']
+)->name('notifications.read');
 
-            return response()->json([
-                'success' => true,
-                'message' => 'Verification email sent successfully.',
-            ]);
-        }
-    );
+Route::put(
+    '/notifications/{notification}/dismiss',
+    [NotificationController::class, 'dismiss']
+)->name('notifications.dismiss');
+
+Route::put(
+    '/notifications/{notification}/snooze',
+    [NotificationController::class, 'snooze']
+)->name('notifications.snooze');
 
 
     /*
@@ -439,4 +450,51 @@ Route::middleware('auth:sanctum')->group(function () {
         '/weather',
         [WeatherController::class, 'index']
     );
+
+    /*
+|--------------------------------------------------------------------------
+| Notifications
+|--------------------------------------------------------------------------
+*/
+
+Route::get(
+    '/notifications',
+    [NotificationController::class, 'index']
+);
+
+Route::post(
+    '/notifications',
+    [NotificationController::class, 'store']
+);
+
+Route::put(
+    '/notifications/{notification}/read',
+    [NotificationController::class, 'markAsRead']
+);
+
+Route::put(
+    '/notifications/{notification}/dismiss',
+    [NotificationController::class, 'dismiss']
+);
+
+Route::put(
+    '/notifications/{notification}/snooze',
+    [NotificationController::class, 'snooze']
+);
+
+/*
+|--------------------------------------------------------------------------
+| Notification Preferences
+|--------------------------------------------------------------------------
+*/
+
+Route::get(
+    '/notification-preferences',
+    [NotificationPreferenceController::class, 'show']
+)->name('notification-preferences.show');
+
+Route::put(
+    '/notification-preferences',
+    [NotificationPreferenceController::class, 'update']
+)->name('notification-preferences.update');
 });

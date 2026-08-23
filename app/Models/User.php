@@ -8,6 +8,7 @@ use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use App\Models\Farm;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class User extends Authenticatable implements MustVerifyEmail
 {
@@ -40,5 +41,21 @@ class User extends Authenticatable implements MustVerifyEmail
     public function farms(): HasMany
 {
     return $this->hasMany(Farm::class);
+}
+
+/**
+ * User notifications.
+ */
+public function notifications(): HasMany
+{
+    return $this->hasMany(Notification::class);
+}
+
+/**
+ * User notification preferences.
+ */
+public function notificationPreference(): HasOne
+{
+    return $this->hasOne(NotificationPreference::class);
 }
 }

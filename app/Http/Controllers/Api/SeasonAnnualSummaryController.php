@@ -21,24 +21,34 @@ class SeasonAnnualSummaryController extends Controller
     public function season(Request $request)
     {
         $validated = $request->validate([
-            'season' => [
-                'required',
-                'string',
-                'max:255',
-            ],
+    'season' => [
+        'required',
+        'string',
+        'max:255',
+    ],
 
-            'farm_id' => [
-                'nullable',
-                'integer',
-                'exists:farms,id',
-            ],
-        ]);
+    'year' => [
+        'required',
+        'integer',
+        'digits:4',
+    ],
+
+    'farm_id' => [
+        'nullable',
+        'integer',
+        'exists:farms,id',
+    ],
+]);
 
         $cropQuery = Crop::query()
-            ->where(
-                'season',
-                $validated['season']
-            );
+    ->where(
+        'season',
+        $validated['season']
+    )
+    ->whereYear(
+        'planting_date',
+        $validated['year']
+    );
 
         if (!empty($validated['farm_id'])) {
             $cropQuery->whereHas(
@@ -65,8 +75,9 @@ class SeasonAnnualSummaryController extends Controller
                 [
                     'type' => 'season',
                     'season' => $validated['season'],
+                    'year' => $validated['year'],
                     'farm_id' =>
-                        $validated['farm_id'] ?? null,
+                    $validated['farm_id'] ?? null,
                 ]
             ),
         ]);

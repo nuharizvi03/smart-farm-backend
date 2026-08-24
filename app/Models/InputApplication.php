@@ -34,6 +34,9 @@ class InputApplication extends Model
 
     public function agrochemicalProduct()
     {
-        return $this->belongsTo(AgrochemicalProduct::class);
+        return $this->belongsTo(
+            AgrochemicalProduct::class,
+            'agrochemical_product_id'
+        );
     }
 }

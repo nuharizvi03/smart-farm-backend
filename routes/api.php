@@ -32,6 +32,11 @@ use App\Http\Controllers\Api\SeasonAnnualSummaryController;
 use App\Http\Controllers\Api\WeatherController;
 use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\NotificationPreferenceController;
+use App\Http\Controllers\Api\ReportController;
+use App\Http\Controllers\Api\FertilizerPesticideReportController;
+use App\Http\Controllers\Api\InputUsageReportController;
+use App\Http\Controllers\Api\BuyerSummaryReportController;
+use App\Http\Controllers\Api\HistoricalFileController;
 
 
 /*
@@ -92,35 +97,52 @@ Route::middleware('auth:sanctum')->group(function () {
 
 
     /*
-|--------------------------------------------------------------------------
-| Notifications - FR-09
-|--------------------------------------------------------------------------
-*/
+    |--------------------------------------------------------------------------
+    | Notifications - FR-09
+    |--------------------------------------------------------------------------
+    */
 
-Route::get(
-    '/notifications',
-    [NotificationController::class, 'index']
-)->name('notifications.index');
+    Route::get(
+        '/notifications',
+        [NotificationController::class, 'index']
+    )->name('notifications.index');
 
-Route::post(
-    '/notifications',
-    [NotificationController::class, 'store']
-)->name('notifications.store');
+    Route::post(
+        '/notifications',
+        [NotificationController::class, 'store']
+    )->name('notifications.store');
 
-Route::put(
-    '/notifications/{notification}/read',
-    [NotificationController::class, 'markAsRead']
-)->name('notifications.read');
+    Route::put(
+        '/notifications/{notification}/read',
+        [NotificationController::class, 'markAsRead']
+    )->name('notifications.read');
 
-Route::put(
-    '/notifications/{notification}/dismiss',
-    [NotificationController::class, 'dismiss']
-)->name('notifications.dismiss');
+    Route::put(
+        '/notifications/{notification}/dismiss',
+        [NotificationController::class, 'dismiss']
+    )->name('notifications.dismiss');
 
-Route::put(
-    '/notifications/{notification}/snooze',
-    [NotificationController::class, 'snooze']
-)->name('notifications.snooze');
+    Route::put(
+        '/notifications/{notification}/snooze',
+        [NotificationController::class, 'snooze']
+    )->name('notifications.snooze');
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Notification Preferences - FR-09.7
+    |--------------------------------------------------------------------------
+    */
+
+    Route::get(
+        '/notification-preferences',
+        [NotificationPreferenceController::class, 'show']
+    )->name('notification-preferences.show');
+
+    Route::put(
+        '/notification-preferences',
+        [NotificationPreferenceController::class, 'update']
+    )->name('notification-preferences.update');
 
 
     /*
@@ -166,10 +188,6 @@ Route::put(
     |--------------------------------------------------------------------------
     | Farm Weather
     |--------------------------------------------------------------------------
-    |
-    | Weather is automatically based on the farm's
-    | current district/location.
-    |
     */
 
     Route::get(
@@ -440,10 +458,6 @@ Route::put(
     |--------------------------------------------------------------------------
     | General Weather Route
     |--------------------------------------------------------------------------
-    |
-    | Example:
-    | GET /api/weather?district=Kandy
-    |
     */
 
     Route::get(
@@ -452,49 +466,129 @@ Route::put(
     );
 
     /*
-|--------------------------------------------------------------------------
-| Notifications
-|--------------------------------------------------------------------------
-*/
+    |--------------------------------------------------------------------------
+    | Historical File Import - FR-10.8
+    |--------------------------------------------------------------------------
+    */
 
-Route::get(
-    '/notifications',
-    [NotificationController::class, 'index']
-);
+    Route::get(
+        '/historical-files',
+        [HistoricalFileController::class, 'index']
+    )->name('historical-files.index');
 
-Route::post(
-    '/notifications',
-    [NotificationController::class, 'store']
-);
+    Route::post(
+        '/historical-files',
+        [HistoricalFileController::class, 'store']
+    )->name('historical-files.store');
 
-Route::put(
-    '/notifications/{notification}/read',
-    [NotificationController::class, 'markAsRead']
-);
+    Route::get(
+        '/historical-files/{historicalFile}',
+        [HistoricalFileController::class, 'show']
+    )->name('historical-files.show');
 
-Route::put(
-    '/notifications/{notification}/dismiss',
-    [NotificationController::class, 'dismiss']
-);
+    Route::get(
+        '/historical-files/{historicalFile}/download',
+        [HistoricalFileController::class, 'download']
+    )->name('historical-files.download');
 
-Route::put(
-    '/notifications/{notification}/snooze',
-    [NotificationController::class, 'snooze']
-);
+    Route::delete(
+        '/historical-files/{historicalFile}',
+        [HistoricalFileController::class, 'destroy']
+    )->name('historical-files.destroy');
 
-/*
-|--------------------------------------------------------------------------
-| Notification Preferences
-|--------------------------------------------------------------------------
-*/
 
-Route::get(
-    '/notification-preferences',
-    [NotificationPreferenceController::class, 'show']
-)->name('notification-preferences.show');
+    /*
+    |--------------------------------------------------------------------------
+    | FR-10 Reports
+    |--------------------------------------------------------------------------
+    */
 
-Route::put(
-    '/notification-preferences',
-    [NotificationPreferenceController::class, 'update']
-)->name('notification-preferences.update');
+    Route::prefix('reports')->group(function () {
+
+        /*
+        |----------------------------------------------------------------------
+        | FR-10.1 - Crop Profit JSON Report
+        |----------------------------------------------------------------------
+        */
+
+        Route::get(
+            '/crop-profit/{crop}',
+            [ReportController::class, 'cropProfit']
+        )->name('reports.crop-profit');
+
+
+        /*
+        |----------------------------------------------------------------------
+        | FR-10.1 - Crop Profit CSV Export
+        |----------------------------------------------------------------------
+        */
+
+        Route::get(
+            '/crop-profit/{crop}/csv',
+            [ReportController::class, 'cropProfitCsv']
+        )->name('reports.crop-profit.csv');
+
+
+        /*
+        |----------------------------------------------------------------------
+        | FR-10.4 - Crop Profit PDF Report
+        |----------------------------------------------------------------------
+        */
+
+        Route::post(
+            '/crop-profit/{crop}/pdf',
+            [ReportController::class, 'cropProfitPdf']
+        )->name('reports.crop-profit.pdf');
+
+                /*
+        |--------------------------------------------------------------------------
+        | FR-10.5 - Season CSV Export
+        |--------------------------------------------------------------------------
+        */
+
+        Route::get(
+            '/season-summary/csv',
+            [ReportController::class, 'seasonSummaryCsv']
+        )->name('reports.season-summary.csv');
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | FR-10.5 - Annual CSV Export
+        |--------------------------------------------------------------------------
+        */
+
+        Route::get(
+            '/annual-summary/{year}/csv',
+            [ReportController::class, 'annualSummaryCsv']
+        )->name('reports.annual-summary.csv');
+
+        /*
+        |--------------------------------------------------------------------------
+        | FR-10.6 Fertilizer & Pesticide Usage Report
+        |--------------------------------------------------------------------------
+        */
+
+        Route::get(
+            '/reports/crops/{crop}/input-usage',
+            [FertilizerPesticideReportController::class, 'show']
+        )->name('reports.crop-input-usage');
+
+        Route::get(
+            '/crops/{crop}/input-usage',
+            [InputUsageReportController::class, 'cropUsage']
+        )->name('reports.crops.input-usage');
+
+        Route::get(
+            '/crops/{crop}/input-usage/csv',
+            [InputUsageReportController::class, 'cropUsageCsv']
+        )->name('reports.crops.input-usage.csv');
+
+        Route::get(
+            '/buyer-summary',
+            [BuyerSummaryReportController::class, 'index']
+        )->name('reports.buyer-summary');
+
+});
+
 });

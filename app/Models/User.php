@@ -9,6 +9,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use App\Models\Farm;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use App\Models\Notification;
 
 class User extends Authenticatable implements MustVerifyEmail
 {

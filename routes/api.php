@@ -37,6 +37,8 @@ use App\Http\Controllers\Api\FertilizerPesticideReportController;
 use App\Http\Controllers\Api\InputUsageReportController;
 use App\Http\Controllers\Api\BuyerSummaryReportController;
 use App\Http\Controllers\Api\HistoricalFileController;
+use App\Http\Controllers\Api\ExtensionOfficerController;
+use App\Http\Controllers\Api\FarmerController;
 
 
 /*
@@ -174,13 +176,76 @@ Route::middleware('auth:sanctum')->group(function () {
 
     /*
     |--------------------------------------------------------------------------
-    | Farm Routes
+    | Farmer CRUD
+    |--------------------------------------------------------------------------
+    */
+
+    Route::post(
+        '/farmers',
+        [FarmerController::class, 'store']
+    )->name('farmers.store');
+
+    Route::get(
+        '/farmers/{farmer}',
+        [FarmerController::class, 'show']
+    )->name('farmers.show');
+
+    Route::put(
+        '/farmers/{farmer}',
+        [FarmerController::class, 'update']
+    )->name('farmers.update');
+
+    Route::delete(
+        '/farmers/{farmer}',
+        [FarmerController::class, 'destroy']
+    )->name('farmers.destroy');
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Farm CRUD
     |--------------------------------------------------------------------------
     */
 
     Route::apiResource(
         'farms',
         FarmController::class
+    );
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Plot CRUD
+    |--------------------------------------------------------------------------
+    */
+
+    Route::apiResource(
+        'farms.plots',
+        PlotController::class
+    );
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Crop CRUD
+    |--------------------------------------------------------------------------
+    */
+
+    Route::apiResource(
+        'farms.plots.crops',
+        CropController::class
+    );
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Expense CRUD
+    |--------------------------------------------------------------------------
+    */
+
+    Route::apiResource(
+        'farms.expenses',
+        ExpenseController::class
     );
 
 
@@ -194,42 +259,6 @@ Route::middleware('auth:sanctum')->group(function () {
         '/farms/{farm}/weather',
         [WeatherController::class, 'farmWeather']
     )->name('farms.weather');
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | Plot Routes
-    |--------------------------------------------------------------------------
-    */
-
-    Route::apiResource(
-        'farms.plots',
-        PlotController::class
-    );
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | Crop Routes
-    |--------------------------------------------------------------------------
-    */
-
-    Route::apiResource(
-        'farms.plots.crops',
-        CropController::class
-    );
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | Expense Routes
-    |--------------------------------------------------------------------------
-    */
-
-    Route::apiResource(
-        'farms.expenses',
-        ExpenseController::class
-    );
 
 
     /*
@@ -292,9 +321,9 @@ Route::middleware('auth:sanctum')->group(function () {
     */
 
     Route::get(
-        'crops/{crop}/harvest-summary',
+        '/crops/{crop}/harvest-summary',
         [HarvestSummaryController::class, 'show']
-    );
+    )->name('crops.harvest-summary');
 
 
     /*
@@ -304,27 +333,27 @@ Route::middleware('auth:sanctum')->group(function () {
     */
 
     Route::get(
-        'harvests/{harvest}/post-harvest-losses',
+        '/harvests/{harvest}/post-harvest-losses',
         [PostHarvestLossController::class, 'index']
     )->name('post-harvest-losses.index');
 
     Route::post(
-        'harvests/{harvest}/post-harvest-losses',
+        '/harvests/{harvest}/post-harvest-losses',
         [PostHarvestLossController::class, 'store']
     )->name('post-harvest-losses.store');
 
     Route::get(
-        'harvests/{harvest}/post-harvest-losses/{postHarvestLoss}',
+        '/harvests/{harvest}/post-harvest-losses/{postHarvestLoss}',
         [PostHarvestLossController::class, 'show']
     )->name('post-harvest-losses.show');
 
     Route::put(
-        'harvests/{harvest}/post-harvest-losses/{postHarvestLoss}',
+        '/harvests/{harvest}/post-harvest-losses/{postHarvestLoss}',
         [PostHarvestLossController::class, 'update']
     )->name('post-harvest-losses.update');
 
     Route::delete(
-        'harvests/{harvest}/post-harvest-losses/{postHarvestLoss}',
+        '/harvests/{harvest}/post-harvest-losses/{postHarvestLoss}',
         [PostHarvestLossController::class, 'destroy']
     )->name('post-harvest-losses.destroy');
 
@@ -336,7 +365,7 @@ Route::middleware('auth:sanctum')->group(function () {
     */
 
     Route::get(
-        'crops/{crop}/financial-summary',
+        '/crops/{crop}/financial-summary',
         [CropFinancialSummaryController::class, 'show']
     )->name('crops.financial-summary');
 
@@ -412,7 +441,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     /*
     |--------------------------------------------------------------------------
-    | Dashboard CSV Export Routes
+    | Dashboard CSV Export
     |--------------------------------------------------------------------------
     */
 
@@ -456,7 +485,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     /*
     |--------------------------------------------------------------------------
-    | General Weather Route
+    | General Weather
     |--------------------------------------------------------------------------
     */
 
@@ -464,6 +493,7 @@ Route::middleware('auth:sanctum')->group(function () {
         '/weather',
         [WeatherController::class, 'index']
     );
+
 
     /*
     |--------------------------------------------------------------------------
@@ -499,6 +529,28 @@ Route::middleware('auth:sanctum')->group(function () {
 
     /*
     |--------------------------------------------------------------------------
+    | Extension Officer Portal - FR-11
+    |--------------------------------------------------------------------------
+    */
+
+    Route::get(
+        '/extension-officer/farmers',
+        [ExtensionOfficerController::class, 'farmers']
+    )->name('extension-officer.farmers');
+
+    Route::get(
+        '/extension-officer/dashboard',
+        [ExtensionOfficerController::class, 'dashboard']
+    )->name('extension-officer.dashboard');
+
+    Route::post(
+        '/extension-officer/broadcast',
+        [ExtensionOfficerController::class, 'broadcast']
+    )->name('extension-officer.broadcast');
+
+
+    /*
+    |--------------------------------------------------------------------------
     | FR-10 Reports
     |--------------------------------------------------------------------------
     */
@@ -519,7 +571,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
         /*
         |----------------------------------------------------------------------
-        | FR-10.1 - Crop Profit CSV Export
+        | FR-10.1 - Crop Profit CSV
         |----------------------------------------------------------------------
         */
 
@@ -531,7 +583,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
         /*
         |----------------------------------------------------------------------
-        | FR-10.4 - Crop Profit PDF Report
+        | FR-10.4 - Crop Profit PDF
         |----------------------------------------------------------------------
         */
 
@@ -540,10 +592,11 @@ Route::middleware('auth:sanctum')->group(function () {
             [ReportController::class, 'cropProfitPdf']
         )->name('reports.crop-profit.pdf');
 
-                /*
-        |--------------------------------------------------------------------------
-        | FR-10.5 - Season CSV Export
-        |--------------------------------------------------------------------------
+
+        /*
+        |----------------------------------------------------------------------
+        | FR-10.5 - Season CSV
+        |----------------------------------------------------------------------
         */
 
         Route::get(
@@ -553,9 +606,9 @@ Route::middleware('auth:sanctum')->group(function () {
 
 
         /*
-        |--------------------------------------------------------------------------
-        | FR-10.5 - Annual CSV Export
-        |--------------------------------------------------------------------------
+        |----------------------------------------------------------------------
+        | FR-10.5 - Annual CSV
+        |----------------------------------------------------------------------
         */
 
         Route::get(
@@ -563,16 +616,24 @@ Route::middleware('auth:sanctum')->group(function () {
             [ReportController::class, 'annualSummaryCsv']
         )->name('reports.annual-summary.csv');
 
+
         /*
-        |--------------------------------------------------------------------------
-        | FR-10.6 Fertilizer & Pesticide Usage Report
-        |--------------------------------------------------------------------------
+        |----------------------------------------------------------------------
+        | FR-10.6 - Fertilizer & Pesticide Usage
+        |----------------------------------------------------------------------
         */
 
         Route::get(
-            '/reports/crops/{crop}/input-usage',
+            '/crops/{crop}/input-usage',
             [FertilizerPesticideReportController::class, 'show']
         )->name('reports.crop-input-usage');
+
+
+        /*
+        |----------------------------------------------------------------------
+        | Input Usage Report
+        |----------------------------------------------------------------------
+        */
 
         Route::get(
             '/crops/{crop}/input-usage',
@@ -584,11 +645,18 @@ Route::middleware('auth:sanctum')->group(function () {
             [InputUsageReportController::class, 'cropUsageCsv']
         )->name('reports.crops.input-usage.csv');
 
+
+        /*
+        |----------------------------------------------------------------------
+        | Buyer Summary
+        |----------------------------------------------------------------------
+        */
+
         Route::get(
             '/buyer-summary',
             [BuyerSummaryReportController::class, 'index']
         )->name('reports.buyer-summary');
 
-});
+    });
 
 });

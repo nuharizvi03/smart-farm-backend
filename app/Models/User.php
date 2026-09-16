@@ -10,21 +10,23 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use App\Models\Farm;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use App\Models\Notification;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class User extends Authenticatable implements MustVerifyEmail
 {
-    use HasApiTokens, Notifiable;
+    use HasApiTokens, Notifiable, SoftDeletes;
 
     protected $fillable = [
-        'full_name',
-        'mobile',
-        'email',
-        'password',
-        'role',
-        'district',
-        'province',
-        'farm_name',
-        'profile_photo',
+    'full_name',
+    'mobile',
+    'email',
+    'password',
+    'role',
+    'district',
+    'province',
+    'farm_name',
+    'profile_photo',
+    'is_active',
     ];
 
     protected $hidden = [
@@ -37,26 +39,27 @@ class User extends Authenticatable implements MustVerifyEmail
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'is_active' => 'boolean',
         ];
     }
     public function farms(): HasMany
-{
-    return $this->hasMany(Farm::class);
-}
+    {
+        return $this->hasMany(Farm::class);
+    }
 
-/**
- * User notifications.
- */
-public function notifications(): HasMany
-{
-    return $this->hasMany(Notification::class);
-}
+    /**
+     * User notifications.
+     */
+    public function notifications(): HasMany
+    {
+        return $this->hasMany(Notification::class);
+    }
 
-/**
- * User notification preferences.
- */
-public function notificationPreference(): HasOne
-{
-    return $this->hasOne(NotificationPreference::class);
-}
+    /**
+     * User notification preferences.
+     */
+    public function notificationPreference(): HasOne
+    {
+        return $this->hasOne(NotificationPreference::class);
+    }
 }

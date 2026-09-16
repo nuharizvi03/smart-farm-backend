@@ -39,6 +39,12 @@ use App\Http\Controllers\Api\BuyerSummaryReportController;
 use App\Http\Controllers\Api\HistoricalFileController;
 use App\Http\Controllers\Api\ExtensionOfficerController;
 use App\Http\Controllers\Api\FarmerController;
+use App\Http\Controllers\Api\AdminDashboardController;
+use App\Http\Controllers\Api\AdminUserController;
+use App\Http\Controllers\Api\AdminCropLibraryController;
+use App\Http\Controllers\Api\AdminExpenseCategoryController;
+use App\Http\Controllers\Api\AdminExtensionOfficerController;
+
 
 
 /*
@@ -658,5 +664,74 @@ Route::middleware('auth:sanctum')->group(function () {
         )->name('reports.buyer-summary');
 
     });
+
+    Route::get('/admin/dashboard', [AdminDashboardController::class, 'index']);
+
+    Route::get('/admin/users', [AdminUserController::class, 'index']);
+
+Route::put('/admin/users/{user}/activate', [AdminUserController::class, 'activate']);
+
+Route::put('/admin/users/{user}/deactivate', [AdminUserController::class, 'deactivate']);
+
+Route::post('/admin/users/{user}/reset-password', [AdminUserController::class, 'resetPassword']);
+
+Route::delete('/admin/users/{user}', [AdminUserController::class, 'destroy']);
+
+// FR-12.3 - Global Crop Library Management
+Route::get('/admin/crop-library', [AdminCropLibraryController::class, 'index']);
+
+Route::post('/admin/crop-library', [AdminCropLibraryController::class, 'store']);
+
+Route::put(
+    '/admin/crop-library/{cropLibrary}',
+    [AdminCropLibraryController::class, 'update']
+);
+
+Route::put(
+    '/admin/crop-library/{cropLibrary}/activate',
+    [AdminCropLibraryController::class, 'activate']
+);
+
+Route::put(
+    '/admin/crop-library/{cropLibrary}/deactivate',
+    [AdminCropLibraryController::class, 'deactivate']
+);
+
+
+// FR-12.3 - Expense Category Management
+Route::get(
+    '/admin/expense-categories',
+    [AdminExpenseCategoryController::class, 'index']
+);
+
+Route::post(
+    '/admin/expense-categories',
+    [AdminExpenseCategoryController::class, 'store']
+);
+
+Route::put(
+    '/admin/expense-categories/{expenseCategory}',
+    [AdminExpenseCategoryController::class, 'update']
+);
+
+Route::put(
+    '/admin/expense-categories/{expenseCategory}/activate',
+    [AdminExpenseCategoryController::class, 'activate']
+);
+
+Route::put(
+    '/admin/expense-categories/{expenseCategory}/deactivate',
+    [AdminExpenseCategoryController::class, 'deactivate']
+);
+
+// FR-12.4 Extension Officer Management
+Route::get('/admin/extension-officers', [AdminExtensionOfficerController::class, 'index']);
+Route::post('/admin/extension-officers', [AdminExtensionOfficerController::class, 'store']);
+Route::get('/admin/extension-officers/{user}', [AdminExtensionOfficerController::class, 'show']);
+Route::put('/admin/extension-officers/{user}', [AdminExtensionOfficerController::class, 'update']);
+Route::put('/admin/extension-officers/{user}/activate', [AdminExtensionOfficerController::class, 'activate']);
+Route::put('/admin/extension-officers/{user}/deactivate', [AdminExtensionOfficerController::class, 'deactivate']);
+Route::delete('/admin/extension-officers/{user}', [AdminExtensionOfficerController::class, 'destroy']);
+
 
 });

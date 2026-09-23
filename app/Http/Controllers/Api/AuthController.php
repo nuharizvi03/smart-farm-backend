@@ -10,9 +10,15 @@ use Illuminate\Support\Facades\Hash;
 use App\Http\Requests\LoginRequest;
 use App\Http\Requests\RegisterRequest;
 use Illuminate\Auth\Events\Registered;
+use App\Services\AuditLogService;
 
 class AuthController extends Controller
 {
+    public function __construct(
+        private AuditLogService $auditLogService
+    ) {
+    }
+
     /**
      * Register a new user
      */
@@ -34,6 +40,17 @@ class AuthController extends Controller
 
         // Create Sanctum token
         $token = $user->createToken('auth_token')->plainTextToken;
+
+        // Record successful registration
+        $this->auditLogService->log(
+            $user,
+            'REGISTER',
+            'User registered successfully.',
+            [
+                'role' => $user->role,
+                'email' => $user->email,
+            ]
+        );
 
         return response()->json([
             'success' => true,
@@ -59,6 +76,16 @@ class AuthController extends Controller
 
         $token = $user->createToken('auth_token')->plainTextToken;
 
+        // Record successful login
+        $this->auditLogService->log(
+            $user,
+            'LOGIN',
+            'User logged in successfully.',
+            [
+                'email' => $user->email,
+            ]
+        );
+
         return response()->json([
             'success' => true,
             'message' => 'Login successful.',
@@ -72,6 +99,13 @@ class AuthController extends Controller
      */
     public function logout(Request $request)
     {
+        // Record logout before deleting the current token
+        $this->auditLogService->log(
+            $request->user(),
+            'LOGOUT',
+            'User logged out successfully.'
+        );
+
         $request->user()->currentAccessToken()->delete();
 
         return response()->json([

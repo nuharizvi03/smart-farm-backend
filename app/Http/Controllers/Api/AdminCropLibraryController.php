@@ -4,12 +4,17 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\CropLibrary;
+use App\Services\AuditLogService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
 class AdminCropLibraryController extends Controller
 {
+    public function __construct(
+        private AuditLogService $auditLogService
+    ) {
+    }
     private function authorizeAdmin(Request $request): ?JsonResponse
     {
         if ($request->user()->role !== 'admin') {
@@ -65,6 +70,17 @@ class AdminCropLibraryController extends Controller
 
         $crop = CropLibrary::create($validated);
 
+        $this->auditLogService->log(
+        $request->user(),
+        'CREATE_CROP_LIBRARY',
+        'Crop added to global crop library successfully.',
+        [
+            'crop_library_id' => $crop->id,
+            'crop_name' => $crop->crop_name,
+            'variety' => $crop->variety,
+        ]
+    );
+
         return response()->json([
             'success' => true,
             'message' => 'Crop added to global crop library successfully.',
@@ -100,6 +116,17 @@ class AdminCropLibraryController extends Controller
 
         $cropLibrary->update($validated);
 
+        $this->auditLogService->log(
+        $request->user(),
+        'UPDATE_CROP_LIBRARY',
+        'Crop library item updated successfully.',
+        [
+            'crop_library_id' => $cropLibrary->id,
+            'crop_name' => $cropLibrary->crop_name,
+            'variety' => $cropLibrary->variety,
+        ]
+    );
+
         return response()->json([
             'success' => true,
             'message' => 'Crop library item updated successfully.',
@@ -119,6 +146,17 @@ class AdminCropLibraryController extends Controller
             'is_active' => true,
         ]);
 
+        $this->auditLogService->log(
+        $request->user(),
+        'ACTIVATE_CROP_LIBRARY',
+        'Crop library item activated successfully.',
+        [
+            'crop_library_id' => $cropLibrary->id,
+            'crop_name' => $cropLibrary->crop_name,
+            'variety' => $cropLibrary->variety,
+        ]
+    );
+
         return response()->json([
             'success' => true,
             'message' => 'Crop library item activated successfully.',
@@ -137,6 +175,17 @@ class AdminCropLibraryController extends Controller
         $cropLibrary->update([
             'is_active' => false,
         ]);
+
+        $this->auditLogService->log(
+        $request->user(),
+        'DEACTIVATE_CROP_LIBRARY',
+        'Crop library item deactivated successfully.',
+        [
+            'crop_library_id' => $cropLibrary->id,
+            'crop_name' => $cropLibrary->crop_name,
+            'variety' => $cropLibrary->variety,
+        ]
+    );
 
         return response()->json([
             'success' => true,

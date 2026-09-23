@@ -4,18 +4,24 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Services\AuditLogService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 
 class AdminUserController extends Controller
 {
+    public function __construct(
+        private AuditLogService $auditLogService
+    ) {
+    }
+
     /**
      * Ensure the authenticated user is an administrator.
      */
     private function authorizeAdmin(Request $request): ?JsonResponse
     {
-        if ($request->user()->role !== 'admin') {
+        if (!$request->user() || $request->user()->role !== 'admin') {
             return response()->json([
                 'success' => false,
                 'message' => 'Unauthorized. Admin access required.',
@@ -26,7 +32,7 @@ class AdminUserController extends Controller
     }
 
     /**
-     * Display all Extension Officer accounts.
+     * Display all Farmer user accounts.
      */
     public function index(Request $request): JsonResponse
     {
@@ -34,8 +40,8 @@ class AdminUserController extends Controller
             return $response;
         }
 
-        $officers = User::withTrashed()
-            ->where('role', 'extension_officer')
+        $farmers = User::withTrashed()
+            ->where('role', 'farmer')
             ->select([
                 'id',
                 'full_name',
@@ -44,6 +50,8 @@ class AdminUserController extends Controller
                 'role',
                 'district',
                 'province',
+                'farm_name',
+                'profile_photo',
                 'is_active',
                 'deleted_at',
                 'created_at',
@@ -53,133 +61,13 @@ class AdminUserController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Extension Officers retrieved successfully.',
-            'data' => $officers,
+            'message' => 'Farmers retrieved successfully.',
+            'data' => $farmers,
         ]);
     }
 
     /**
-     * Create a new Extension Officer account.
-     */
-    public function store(Request $request): JsonResponse
-    {
-        if ($response = $this->authorizeAdmin($request)) {
-            return $response;
-        }
-
-        $validated = $request->validate([
-            'full_name' => ['required', 'string', 'max:255'],
-            'mobile' => ['required', 'string', 'max:20'],
-            'email' => ['required', 'email', 'max:255', 'unique:users,email'],
-            'password' => ['required', 'string', 'min:8', 'confirmed'],
-            'district' => ['required', 'string', 'max:255'],
-            'province' => ['nullable', 'string', 'max:255'],
-        ]);
-
-        $officer = User::create([
-            'full_name' => $validated['full_name'],
-            'mobile' => $validated['mobile'],
-            'email' => $validated['email'],
-            'password' => Hash::make($validated['password']),
-            'role' => 'extension_officer',
-            'district' => $validated['district'],
-            'province' => $validated['province'] ?? null,
-            'is_active' => true,
-        ]);
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Extension Officer created successfully.',
-            'data' => [
-                'id' => $officer->id,
-                'full_name' => $officer->full_name,
-                'mobile' => $officer->mobile,
-                'email' => $officer->email,
-                'role' => $officer->role,
-                'district' => $officer->district,
-                'province' => $officer->province,
-                'is_active' => $officer->is_active,
-            ],
-        ], 201);
-    }
-
-    /**
-     * Display one Extension Officer.
-     */
-    public function show(Request $request, User $user): JsonResponse
-    {
-        if ($response = $this->authorizeAdmin($request)) {
-            return $response;
-        }
-
-        if ($user->role !== 'extension_officer') {
-            return response()->json([
-                'success' => false,
-                'message' => 'The selected user is not an Extension Officer.',
-            ], 404);
-        }
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Extension Officer retrieved successfully.',
-            'data' => [
-                'id' => $user->id,
-                'full_name' => $user->full_name,
-                'mobile' => $user->mobile,
-                'email' => $user->email,
-                'role' => $user->role,
-                'district' => $user->district,
-                'province' => $user->province,
-                'is_active' => $user->is_active,
-                'created_at' => $user->created_at,
-            ],
-        ]);
-    }
-
-    /**
-     * Update an Extension Officer.
-     */
-    public function update(Request $request, User $user): JsonResponse
-    {
-        if ($response = $this->authorizeAdmin($request)) {
-            return $response;
-        }
-
-        if ($user->role !== 'extension_officer') {
-            return response()->json([
-                'success' => false,
-                'message' => 'The selected user is not an Extension Officer.',
-            ], 404);
-        }
-
-        $validated = $request->validate([
-            'full_name' => ['required', 'string', 'max:255'],
-            'mobile' => ['required', 'string', 'max:20'],
-            'email' => ['required', 'email', 'max:255', 'unique:users,email,' . $user->id],
-            'district' => ['required', 'string', 'max:255'],
-            'province' => ['nullable', 'string', 'max:255'],
-        ]);
-
-        $user->update($validated);
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Extension Officer updated successfully.',
-            'data' => [
-                'id' => $user->id,
-                'full_name' => $user->full_name,
-                'mobile' => $user->mobile,
-                'email' => $user->email,
-                'role' => $user->role,
-                'district' => $user->district,
-                'province' => $user->province,
-                'is_active' => $user->is_active,
-            ],
-        ]);
-    }
-
-    /**
-     * Activate an Extension Officer.
+     * Activate a Farmer user account.
      */
     public function activate(Request $request, User $user): JsonResponse
     {
@@ -187,17 +75,17 @@ class AdminUserController extends Controller
             return $response;
         }
 
-        if ($user->role !== 'extension_officer') {
+        if ($user->role !== 'farmer') {
             return response()->json([
                 'success' => false,
-                'message' => 'The selected user is not an Extension Officer.',
-            ], 404);
+                'message' => 'The selected user is not a farmer.',
+            ], 422);
         }
 
         if ($user->trashed()) {
             return response()->json([
                 'success' => false,
-                'message' => 'Deleted Extension Officers cannot be activated.',
+                'message' => 'Deleted users cannot be activated. Restore the account first.',
             ], 422);
         }
 
@@ -205,9 +93,20 @@ class AdminUserController extends Controller
             'is_active' => true,
         ]);
 
+        $this->auditLogService->log(
+            $request->user(),
+            'ACTIVATE_USER',
+            'Administrator activated a user account.',
+            [
+                'target_user_id' => $user->id,
+                'email' => $user->email,
+                'role' => $user->role,
+            ]
+        );
+
         return response()->json([
             'success' => true,
-            'message' => 'Extension Officer activated successfully.',
+            'message' => 'User activated successfully.',
             'data' => [
                 'id' => $user->id,
                 'full_name' => $user->full_name,
@@ -218,7 +117,7 @@ class AdminUserController extends Controller
     }
 
     /**
-     * Deactivate an Extension Officer.
+     * Deactivate a Farmer user account.
      */
     public function deactivate(Request $request, User $user): JsonResponse
     {
@@ -226,17 +125,17 @@ class AdminUserController extends Controller
             return $response;
         }
 
-        if ($user->role !== 'extension_officer') {
+        if ($user->role !== 'farmer') {
             return response()->json([
                 'success' => false,
-                'message' => 'The selected user is not an Extension Officer.',
-            ], 404);
+                'message' => 'The selected user is not a farmer.',
+            ], 422);
         }
 
         if ($user->trashed()) {
             return response()->json([
                 'success' => false,
-                'message' => 'This Extension Officer has already been deleted.',
+                'message' => 'This user has already been deleted.',
             ], 422);
         }
 
@@ -244,9 +143,20 @@ class AdminUserController extends Controller
             'is_active' => false,
         ]);
 
+        $this->auditLogService->log(
+            $request->user(),
+            'DEACTIVATE_USER',
+            'Administrator deactivated a user account.',
+            [
+                'target_user_id' => $user->id,
+                'email' => $user->email,
+                'role' => $user->role,
+            ]
+        );
+
         return response()->json([
             'success' => true,
-            'message' => 'Extension Officer deactivated successfully.',
+            'message' => 'User deactivated successfully.',
             'data' => [
                 'id' => $user->id,
                 'full_name' => $user->full_name,
@@ -257,7 +167,55 @@ class AdminUserController extends Controller
     }
 
     /**
-     * Soft-delete an Extension Officer.
+     * Reset password for a Farmer user account.
+     */
+    public function resetPassword(Request $request, User $user): JsonResponse
+    {
+        if ($response = $this->authorizeAdmin($request)) {
+            return $response;
+        }
+
+        if ($user->role !== 'farmer') {
+            return response()->json([
+                'success' => false,
+                'message' => 'The selected user is not a farmer.',
+            ], 422);
+        }
+
+        if ($user->trashed()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Cannot reset password for a deleted user.',
+            ], 422);
+        }
+
+        $validated = $request->validate([
+            'password' => ['required', 'string', 'min:8', 'confirmed'],
+        ]);
+
+        $user->update([
+            'password' => Hash::make($validated['password']),
+        ]);
+
+        $this->auditLogService->log(
+            $request->user(),
+            'RESET_USER_PASSWORD',
+            'Administrator reset a user password.',
+            [
+                'target_user_id' => $user->id,
+                'email' => $user->email,
+                'role' => $user->role,
+            ]
+        );
+
+        return response()->json([
+            'success' => true,
+            'message' => 'User password reset successfully.',
+        ]);
+    }
+
+    /**
+     * Soft delete a Farmer user account.
      */
     public function destroy(Request $request, User $user): JsonResponse
     {
@@ -265,25 +223,36 @@ class AdminUserController extends Controller
             return $response;
         }
 
-        if ($user->role !== 'extension_officer') {
+        if ($user->role !== 'farmer') {
             return response()->json([
                 'success' => false,
-                'message' => 'The selected user is not an Extension Officer.',
-            ], 404);
+                'message' => 'The selected user is not a farmer.',
+            ], 422);
         }
 
         if ($user->trashed()) {
             return response()->json([
                 'success' => false,
-                'message' => 'This Extension Officer has already been deleted.',
+                'message' => 'This user has already been deleted.',
             ], 422);
         }
+
+        $this->auditLogService->log(
+            $request->user(),
+            'DELETE_USER',
+            'Administrator deleted a user account.',
+            [
+                'target_user_id' => $user->id,
+                'email' => $user->email,
+                'role' => $user->role,
+            ]
+        );
 
         $user->delete();
 
         return response()->json([
             'success' => true,
-            'message' => 'Extension Officer deleted successfully.',
+            'message' => 'User deleted successfully.',
         ]);
     }
 }

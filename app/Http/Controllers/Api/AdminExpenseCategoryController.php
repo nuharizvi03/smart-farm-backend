@@ -4,12 +4,17 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\ExpenseCategory;
+use App\Services\AuditLogService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
 class AdminExpenseCategoryController extends Controller
 {
+    public function __construct(
+        private AuditLogService $auditLogService
+    ) {
+    }
     private function authorizeAdmin(Request $request): ?JsonResponse
     {
         if ($request->user()->role !== 'admin') {
@@ -63,6 +68,16 @@ class AdminExpenseCategoryController extends Controller
 
         $category = ExpenseCategory::create($validated);
 
+        $this->auditLogService->log(
+        $request->user(),
+        'CREATE_EXPENSE_CATEGORY',
+        'Expense category created successfully.',
+        [
+            'expense_category_id' => $category->id,
+            'name' => $category->name,
+        ]
+    );
+
         return response()->json([
             'success' => true,
             'message' => 'Expense category created successfully.',
@@ -95,6 +110,16 @@ class AdminExpenseCategoryController extends Controller
 
         $expenseCategory->update($validated);
 
+        $this->auditLogService->log(
+        $request->user(),
+        'UPDATE_EXPENSE_CATEGORY',
+        'Expense category updated successfully.',
+        [
+            'expense_category_id' => $expenseCategory->id,
+            'name' => $expenseCategory->name,
+        ]
+    );
+
         return response()->json([
             'success' => true,
             'message' => 'Expense category updated successfully.',
@@ -114,6 +139,16 @@ class AdminExpenseCategoryController extends Controller
             'is_active' => true,
         ]);
 
+        $this->auditLogService->log(
+        $request->user(),
+        'ACTIVATE_EXPENSE_CATEGORY',
+        'Expense category activated successfully.',
+        [
+            'expense_category_id' => $expenseCategory->id,
+            'name' => $expenseCategory->name,
+        ]
+    );
+
         return response()->json([
             'success' => true,
             'message' => 'Expense category activated successfully.',
@@ -132,6 +167,16 @@ class AdminExpenseCategoryController extends Controller
         $expenseCategory->update([
             'is_active' => false,
         ]);
+
+        $this->auditLogService->log(
+        $request->user(),
+        'DEACTIVATE_EXPENSE_CATEGORY',
+        'Expense category deactivated successfully.',
+        [
+            'expense_category_id' => $expenseCategory->id,
+            'name' => $expenseCategory->name,
+        ]
+    );
 
         return response()->json([
             'success' => true,

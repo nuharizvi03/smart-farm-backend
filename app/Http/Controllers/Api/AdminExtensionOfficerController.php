@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Services\AuditLogService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -11,6 +12,12 @@ use Illuminate\Validation\Rule;
 
 class AdminExtensionOfficerController extends Controller
 {
+
+
+    public function __construct(
+    private AuditLogService $auditLogService
+        ) {
+        }
     private function authorizeAdmin(Request $request): ?JsonResponse
     {
         if (!$request->user() || $request->user()->role !== 'admin') {
@@ -79,6 +86,17 @@ class AdminExtensionOfficerController extends Controller
             'is_active' => true,
         ]);
 
+        $this->auditLogService->log(
+        $request->user(),
+        'CREATE_EXTENSION_OFFICER',
+        'Extension officer created successfully.',
+        [
+            'target_user_id' => $officer->id,
+            'email' => $officer->email,
+            'district' => $officer->district,
+        ]
+    );
+
         return response()->json([
             'success' => true,
             'message' => 'Extension officer created successfully.',
@@ -134,6 +152,17 @@ class AdminExtensionOfficerController extends Controller
 
         $user->update($validated);
 
+        $this->auditLogService->log(
+        $request->user(),
+        'UPDATE_EXTENSION_OFFICER',
+        'Extension officer updated successfully.',
+        [
+            'target_user_id' => $user->id,
+            'email' => $user->email,
+            'district' => $user->district,
+        ]
+    );
+
         return response()->json([
             'success' => true,
             'message' => 'Extension officer updated successfully.',
@@ -164,6 +193,16 @@ class AdminExtensionOfficerController extends Controller
         $user->update([
             'is_active' => true,
         ]);
+
+        $this->auditLogService->log(
+        $request->user(),
+        'ACTIVATE_EXTENSION_OFFICER',
+        'Extension officer activated successfully.',
+        [
+            'target_user_id' => $user->id,
+            'email' => $user->email,
+        ]
+    );
 
         return response()->json([
             'success' => true,
@@ -201,6 +240,16 @@ class AdminExtensionOfficerController extends Controller
             'is_active' => false,
         ]);
 
+        $this->auditLogService->log(
+        $request->user(),
+        'DEACTIVATE_EXTENSION_OFFICER',
+        'Extension officer deactivated successfully.',
+        [
+            'target_user_id' => $user->id,
+            'email' => $user->email,
+        ]
+    );
+
         return response()->json([
             'success' => true,
             'message' => 'Extension officer deactivated successfully.',
@@ -233,7 +282,17 @@ class AdminExtensionOfficerController extends Controller
             ], 422);
         }
 
-        $user->delete();
+        $this->auditLogService->log(
+        $request->user(),
+        'DELETE_EXTENSION_OFFICER',
+        'Extension officer deleted successfully.',
+        [
+            'target_user_id' => $user->id,
+            'email' => $user->email,
+        ]
+    );
+
+    $user->delete();
 
         return response()->json([
             'success' => true,

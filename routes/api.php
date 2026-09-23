@@ -44,6 +44,7 @@ use App\Http\Controllers\Api\AdminUserController;
 use App\Http\Controllers\Api\AdminCropLibraryController;
 use App\Http\Controllers\Api\AdminExpenseCategoryController;
 use App\Http\Controllers\Api\AdminExtensionOfficerController;
+use App\Http\Controllers\Api\AdminAuditLogController;
 
 
 
@@ -666,6 +667,11 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     Route::get('/admin/dashboard', [AdminDashboardController::class, 'index']);
+
+    Route::get(
+        '/admin/audit-logs',
+        [AdminAuditLogController::class, 'index']
+    );
 
     Route::get('/admin/users', [AdminUserController::class, 'index']);
 

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Services\DashboardFilterService;
+use App\Services\AuditLogService;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -12,7 +13,8 @@ class DashboardExportController extends Controller
     protected DashboardFilterService $filterService;
 
     public function __construct(
-        DashboardFilterService $filterService
+        DashboardFilterService $filterService,
+        protected AuditLogService $auditLogService
     ) {
         $this->filterService = $filterService;
     }
@@ -29,6 +31,12 @@ class DashboardExportController extends Controller
         $responseData = $response->getData(true);
 
         $chartData = $responseData['data']['chart_data'] ?? [];
+
+        $this->auditLogService->log(
+        $request->user(),
+        'EXPORT_DASHBOARD_PROFIT_TREND_CSV',
+        'User exported dashboard profit trend report as CSV.'
+    );
 
         return $this->downloadCsv(
             'profit-trend.csv',
@@ -67,6 +75,12 @@ class DashboardExportController extends Controller
 
         $chartData = $responseData['data']['chart_data'] ?? [];
 
+        $this->auditLogService->log(
+        $request->user(),
+        'EXPORT_DASHBOARD_EXPENSE_DISTRIBUTION_CSV',
+        'User exported dashboard expense distribution report as CSV.'
+    );
+
         return $this->downloadCsv(
             'expense-distribution.csv',
             [
@@ -97,6 +111,12 @@ class DashboardExportController extends Controller
         $responseData = $response->getData(true);
 
         $chartData = $responseData['data']['chart_data'] ?? [];
+
+        $this->auditLogService->log(
+        $request->user(),
+        'EXPORT_DASHBOARD_REVENUE_EXPENSES_CSV',
+        'User exported dashboard revenue versus expenses report as CSV.'
+    );
 
         return $this->downloadCsv(
             'revenue-vs-expenses.csv',
@@ -134,6 +154,12 @@ class DashboardExportController extends Controller
         $responseData = $response->getData(true);
 
         $chartData = $responseData['data']['chart_data'] ?? [];
+
+        $this->auditLogService->log(
+        $request->user(),
+        'EXPORT_DASHBOARD_CROP_PERFORMANCE_CSV',
+        'User exported dashboard crop performance report as CSV.'
+    );
 
         return $this->downloadCsv(
             'crop-performance.csv',

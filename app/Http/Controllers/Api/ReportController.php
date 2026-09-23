@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Crop;
 use App\Services\ReportService;
+use App\Services\AuditLogService;
 use Illuminate\Http\JsonResponse;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
@@ -15,7 +16,8 @@ use App\Models\Sale;
 class ReportController extends Controller
 {
     public function __construct(
-        protected ReportService $reportService
+        protected ReportService $reportService,
+        protected AuditLogService $auditLogService
     ) {
     }
 
@@ -36,10 +38,23 @@ class ReportController extends Controller
         ]);
     }
 
-    public function cropProfitCsv(Crop $crop)
+    public function cropProfitCsv(
+        Request $request,
+        Crop $crop
+    )
 {
     $report = $this->reportService->cropProfit($crop);
 
+    $this->auditLogService->log(
+        $request->user(),
+        'EXPORT_CROP_PROFIT_CSV',
+        'User exported crop profit report as CSV.',
+        [
+            'crop_id' => $crop->id,
+            'crop_name' => $crop->crop_name,
+        ]
+    );
+    
     $filename = 'crop-profit-report-' . $crop->id . '.csv';
 
     return response()->streamDownload(function () use ($report) {
@@ -168,6 +183,16 @@ public function cropProfitPdf(Request $request, Crop $crop)
         ]
     );
 
+    $this->auditLogService->log(
+        $request->user(),
+        'EXPORT_CROP_PROFIT_PDF',
+        'User exported crop profit report as PDF.',
+        [
+            'crop_id' => $crop->id,
+            'crop_name' => $crop->crop_name,
+        ]
+    );
+
     return $pdf->download(
         'crop-profit-report-' . $crop->id . '.pdf'
     );
@@ -213,6 +238,16 @@ public function seasonSummaryCsv(Request $request)
 
     $summary = $this->buildFinancialSummaryForCsv($crops);
 
+    $this->auditLogService->log(
+        $request->user(),
+        'EXPORT_SEASON_SUMMARY_CSV',
+        'User exported seasonal financial report as CSV.',
+        [
+            'season' => $validated['season'],
+            'farm_id' => $validated['farm_id'] ?? null,
+        ]
+    );
+        
     $filename = 'season-financial-report-' .
         str_replace(' ', '-', strtolower($validated['season'])) .
         '.csv';
@@ -368,6 +403,16 @@ public function annualSummaryCsv(
 
     $summary = $this->buildFinancialSummaryForCsv($crops);
 
+    $this->auditLogService->log(
+        $request->user(),
+        'EXPORT_ANNUAL_SUMMARY_CSV',
+        'User exported annual financial report as CSV.',
+        [
+            'year' => $year,
+            'farm_id' => $validated['farm_id'] ?? null,
+        ]
+    );
+    
     $filename =
         'annual-financial-report-' .
         $year .
